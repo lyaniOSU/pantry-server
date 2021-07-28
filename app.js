@@ -39,7 +39,7 @@ if (port == null || port == "") {
 }
 app.listen(port);
 
-app.use(function(req,res,next) {
+app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Credentials", true);
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
@@ -47,9 +47,55 @@ app.use(function(req,res,next) {
   next();
 });
 
-//app.use(cors());
+app.use(cors());
 
 //HTTP Requests
+
+app.get('/randomize', function (req, res) {
+  var number = req.query.number;
+  var path = "/recipes/random?number=" + number;
+  var sample = "/recipes/random?number=1&tags=vegetarian%2Cdessert";
+
+  const searchRecipe = {
+    "method": "GET",
+    "hostname": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
+    "port": null,
+    "path": path,
+    "headers": {
+      "x-rapidapi-key": "7eac1f1eb2msh18be51d7ad8ff22p19c11ejsnd85ba0747743",
+      "x-rapidapi-host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
+      "useQueryString": true
+    }
+  };
+
+  const request = http.request(searchRecipe, function (results) {
+    const chunks = [];
+    console.log(res);
+
+    results.on("data", function (chunk) {
+      chunks.push(chunk);
+      console.log(chunk);
+    });
+
+    results.on("end", function () {
+      const body = Buffer.concat(chunks);
+      console.log(body.toString());
+      content = JSON.parse(body);
+      var recipes = content.recipes;
+      console.log(recipes);
+      var ids = [];
+      for (i = 0; i < recipes.length; i++) {
+        ids.push(recipes[i].id);
+        //console.log(recipes[i].id);
+      }
+      //console.log(ids);
+      getDetails(ids, res);
+      //res.send(body);
+    });
+  });
+
+  request.end()
+});
 
 app.get('/search', function (req, res) {
   console.log(req);
@@ -77,12 +123,12 @@ app.get('/search', function (req, res) {
   const request = http.request(searchRecipe, function (results) {
     const chunks = [];
     console.log(res);
-  
+
     results.on("data", function (chunk) {
       chunks.push(chunk);
       console.log(chunk);
     });
-  
+
     results.on("end", function () {
       const body = Buffer.concat(chunks);
       console.log(body.toString());
@@ -90,24 +136,24 @@ app.get('/search', function (req, res) {
       var recipes = content.results;
       //console.log(recipes);
       var ids = [];
-      for (i=0; i<recipes.length; i++){
+      for (i = 0; i < recipes.length; i++) {
         ids.push(recipes[i].id);
-        //console.log(recipes[i].id);
+        console.log(recipes[i].id);
       }
       //console.log(ids);
       getDetails(ids, res);
       //res.send(body);
     });
   });
-  
+
   request.end()
 
 });
 
 function getDetails(array, res) {
   var ids = "";
-  for (i=0; i < array.length; i++) {
-    if (i===(array.length-1)) {
+  for (i = 0; i < array.length; i++) {
+    if (i === (array.length - 1)) {
       ids += array[i];
     } else {
       ids += array[i];
@@ -132,12 +178,12 @@ function getDetails(array, res) {
   const request = http.request(searchDetails, function (results) {
     const chunks = [];
     //console.log(res);
-  
+
     results.on("data", function (chunk) {
       chunks.push(chunk);
       console.log(chunk);
     });
-  
+
     results.on("end", function () {
       const body = Buffer.concat(chunks);
       console.log(body.toString());
@@ -148,45 +194,6 @@ function getDetails(array, res) {
   request.end()
 
 }
-
-app.get('/details', function(req, res) {
-  var ids = ['864592','1093080'];
-  var id = req.query.id;
-  var path = "/recipes/informationBulk?ids=" + id;
-  var sample = "/recipes/informationBulk?ids=456%2C987%2C321";
-
-  const searchDetails = {
-    "method": "GET",
-    "hostname": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
-    "port": null,
-    "path": path,
-    "headers": {
-      "x-rapidapi-key": "7eac1f1eb2msh18be51d7ad8ff22p19c11ejsnd85ba0747743",
-      "x-rapidapi-host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
-      "useQueryString": true
-    }
-  };
-
-  const request = http.request(searchDetails, function (results) {
-    const chunks = [];
-    console.log(res);
-  
-    results.on("data", function (chunk) {
-      chunks.push(chunk);
-      console.log(chunk);
-    });
-  
-    results.on("end", function () {
-      const body = Buffer.concat(chunks);
-      console.log(body.toString());
-      res.send(body);
-    });
-  });
-  
-  request.end()
-
-});
-
 
 //Error Handling
 
