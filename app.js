@@ -49,6 +49,8 @@ app.use(function (req, res, next) {
 
 app.use(cors());
 
+aoo.use(express.static("public"));
+
 //HTTP Requests
 
 app.get('/randomize', function (req, res) {
