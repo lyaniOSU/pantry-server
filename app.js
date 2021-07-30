@@ -20,6 +20,11 @@ pool.connect();
 var bodyParser = require('body-parser');
 var request = require('request');
 var cors = require('cors');
+const {
+  appendFile
+} = require('fs');
+const { prependListener } = require('process');
+const { callbackify } = require('util');
 
 var app = express();
 var handlebars = require('express-handlebars').create({
@@ -70,19 +75,19 @@ app.get('/randomize', function (req, res) {
 
   const request = http.request(searchRecipe, function (results) {
     const chunks = [];
-    console.log(res);
+    //console.log(res);
 
     results.on("data", function (chunk) {
       chunks.push(chunk);
-      console.log(chunk);
+      //console.log(chunk);
     });
 
     results.on("end", function () {
       const body = Buffer.concat(chunks);
-      console.log(body.toString());
+      //console.log(body.toString());
       content = JSON.parse(body);
       var recipes = content.recipes;
-      console.log(recipes);
+      //console.log(recipes);
       var ids = [];
       for (i = 0; i < recipes.length; i++) {
         ids.push(recipes[i].id);
@@ -98,7 +103,7 @@ app.get('/randomize', function (req, res) {
 });
 
 app.get('/search', function (req, res) {
-  console.log(req);
+  //console.log(req);
   var item = req.query.item; //"burger";
   var cuisine = req.query.cuisine; //"american";
   var diet = req.query.diet; //"vegetarian";
@@ -126,21 +131,19 @@ app.get('/search', function (req, res) {
 
     results.on("data", function (chunk) {
       chunks.push(chunk);
-      console.log(chunk);
+      //console.log(chunk);
     });
 
     results.on("end", function () {
       const body = Buffer.concat(chunks);
-      console.log(body.toString());
+      //console.log(body.toString());
       content = JSON.parse(body);
       var recipes = content.results;
-      //console.log(recipes);
       var ids = [];
       for (i = 0; i < recipes.length; i++) {
         ids.push(recipes[i].id);
         console.log(recipes[i].id);
       }
-      //console.log(ids);
       getDetails(ids, res);
       //res.send(body);
     });
@@ -149,6 +152,94 @@ app.get('/search', function (req, res) {
   request.end()
 
 });
+
+app.get('/query', function(req, res) {
+  var item = req.query.item;
+  console.log(item);
+  var path = "/recipes/search?query=" + item + "&number=1";
+
+  const options = {
+    "method": "GET",
+    "hostname": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
+    "port": null,
+    "path": path,
+    "headers": {
+      "x-rapidapi-key": "7eac1f1eb2msh18be51d7ad8ff22p19c11ejsnd85ba0747743",
+      "x-rapidapi-host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
+      "useQueryString": true
+    }
+  };
+  
+  const request = http.request(options, function (results) {
+    const chunks = [];
+  
+    results.on("data", function (chunk) {
+      chunks.push(chunk);
+    });
+  
+    results.on("end", function () {
+      const body = Buffer.concat(chunks);
+      console.log(body.toString());
+      content = JSON.parse(body);
+      var recipes = content.results;
+      console.log(recipes);
+
+      if (recipes.length === 0) {
+        res.send("No results found. Please try another query.");
+      } else {
+        var ids = recipes[0].id;
+      /*for (i = 0; i < recipes.length; i++) {
+        ids.push(recipes[i].id);
+        console.log(recipes[i].id);
+      }*/
+        getSummary(ids, res);
+      }
+
+      
+    });
+  });
+  
+  request.end();
+});
+
+function getSummary(array, res) {
+  var id = array;
+  console.log(id);
+  var path = "/recipes/"+ id +"/information";
+
+  const options = {
+    "method": "GET",
+    "hostname": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
+    "port": null,
+    "path": path,
+    "headers": {
+      "x-rapidapi-key": "7eac1f1eb2msh18be51d7ad8ff22p19c11ejsnd85ba0747743",
+      "x-rapidapi-host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
+      "useQueryString": true
+    }
+  };
+  
+  const request = http.request(options, function (results) {
+    const chunks = [];
+  
+    results.on("data", function (chunk) {
+      chunks.push(chunk);
+    });
+  
+    results.on("end", function () {
+      const body = Buffer.concat(chunks);
+      console.log(body.toString());
+      var condensed = {};
+      var bodyjson = JSON.parse(body);
+      condensed["title"] = bodyjson.title;
+      condensed["image"] = bodyjson.image;
+      condensed["sourceUrl"] = bodyjson.sourceUrl;
+      res.send(condensed);
+    });
+  });
+  
+  request.end();
+}
 
 function getDetails(array, res) {
   var ids = "";
@@ -161,7 +252,7 @@ function getDetails(array, res) {
     }
   }
   var path = "/recipes/informationBulk?ids=" + ids;
-  console.log(path);
+  //console.log(path);
 
   const searchDetails = {
     "method": "GET",
@@ -181,19 +272,68 @@ function getDetails(array, res) {
 
     results.on("data", function (chunk) {
       chunks.push(chunk);
-      console.log(chunk);
+      //console.log(chunk);
     });
 
     results.on("end", function () {
       const body = Buffer.concat(chunks);
-      console.log(body.toString());
+      //console.log(body.toString());
       res.send(body);
+
+      //getNutrition(JSON.parse(body), array)
+
+
     });
   });
-
   request.end()
+};
 
-}
+function getNutrition(data, array, res) {
+  function combining(callback) {
+    let points = [];
+    for (i = 0; i < array.length; i++) {
+      var id = array[i];
+      var path = "/recipes/" + id + "/nutritionWidget.json"
+      const options = {
+        "method": "GET",
+        "hostname": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
+        "port": null,
+        "path": path,
+        "headers": {
+          "x-rapidapi-key": "7eac1f1eb2msh18be51d7ad8ff22p19c11ejsnd85ba0747743",
+          "x-rapidapi-host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
+          "useQueryString": true
+        }
+      };
+      var obj1 = data[i];
+      const request = http.request(options, function (results) {
+        const chunks = [];
+        results.on("data", function (chunk) {
+          chunks.push(chunk);
+        });
+        results.on("end", function () {
+          const body = Buffer.concat(chunks);
+          var other = JSON.parse(body);
+          var obj2 = other;
+          var merged = {
+            ...obj1,
+            ...obj2
+          };
+          var details = JSON.stringify(merged);
+          points.push(details);
+          //console.log(points);
+        });
+      });
+      request.end();
+    };
+    callback(points);
+  };
+  
+  combining(function(points) {
+    console.log(points);
+  });
+
+};
 
 //Error Handling
 
