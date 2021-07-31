@@ -23,8 +23,12 @@ var cors = require('cors');
 const {
   appendFile
 } = require('fs');
-const { prependListener } = require('process');
-const { callbackify } = require('util');
+const {
+  prependListener
+} = require('process');
+const {
+  callbackify
+} = require('util');
 
 var app = express();
 var handlebars = require('express-handlebars').create({
@@ -153,7 +157,7 @@ app.get('/search', function (req, res) {
 
 });
 
-app.get('/query', function(req, res) {
+app.get('/query', function (req, res) {
   var item = req.query.item;
   console.log(item);
   var path = "/recipes/search?query=" + item + "&number=1";
@@ -169,14 +173,14 @@ app.get('/query', function(req, res) {
       "useQueryString": true
     }
   };
-  
+
   const request = http.request(options, function (results) {
     const chunks = [];
-  
+
     results.on("data", function (chunk) {
       chunks.push(chunk);
     });
-  
+
     results.on("end", function () {
       const body = Buffer.concat(chunks);
       console.log(body.toString());
@@ -188,24 +192,24 @@ app.get('/query', function(req, res) {
         res.send("No results found. Please try another query.");
       } else {
         var ids = recipes[0].id;
-      /*for (i = 0; i < recipes.length; i++) {
-        ids.push(recipes[i].id);
-        console.log(recipes[i].id);
-      }*/
+        /*for (i = 0; i < recipes.length; i++) {
+          ids.push(recipes[i].id);
+          console.log(recipes[i].id);
+        }*/
         getSummary(ids, res);
       }
 
-      
+
     });
   });
-  
+
   request.end();
 });
 
 function getSummary(array, res) {
   var id = array;
   console.log(id);
-  var path = "/recipes/"+ id +"/information";
+  var path = "/recipes/" + id + "/information";
 
   const options = {
     "method": "GET",
@@ -218,14 +222,14 @@ function getSummary(array, res) {
       "useQueryString": true
     }
   };
-  
+
   const request = http.request(options, function (results) {
     const chunks = [];
-  
+
     results.on("data", function (chunk) {
       chunks.push(chunk);
     });
-  
+
     results.on("end", function () {
       const body = Buffer.concat(chunks);
       console.log(body.toString());
@@ -237,7 +241,7 @@ function getSummary(array, res) {
       res.send(condensed);
     });
   });
-  
+
   request.end();
 }
 
@@ -277,63 +281,14 @@ function getDetails(array, res) {
 
     results.on("end", function () {
       const body = Buffer.concat(chunks);
-      //console.log(body.toString());
+      console.log(body.toString());
       res.send(body);
-
-      //getNutrition(JSON.parse(body), array)
-
-
     });
   });
   request.end()
 };
 
-function getNutrition(data, array, res) {
-  function combining(callback) {
-    let points = [];
-    for (i = 0; i < array.length; i++) {
-      var id = array[i];
-      var path = "/recipes/" + id + "/nutritionWidget.json"
-      const options = {
-        "method": "GET",
-        "hostname": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
-        "port": null,
-        "path": path,
-        "headers": {
-          "x-rapidapi-key": "7eac1f1eb2msh18be51d7ad8ff22p19c11ejsnd85ba0747743",
-          "x-rapidapi-host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
-          "useQueryString": true
-        }
-      };
-      var obj1 = data[i];
-      const request = http.request(options, function (results) {
-        const chunks = [];
-        results.on("data", function (chunk) {
-          chunks.push(chunk);
-        });
-        results.on("end", function () {
-          const body = Buffer.concat(chunks);
-          var other = JSON.parse(body);
-          var obj2 = other;
-          var merged = {
-            ...obj1,
-            ...obj2
-          };
-          var details = JSON.stringify(merged);
-          points.push(details);
-          //console.log(points);
-        });
-      });
-      request.end();
-    };
-    callback(points);
-  };
-  
-  combining(function(points) {
-    console.log(points);
-  });
 
-};
 
 //Error Handling
 
