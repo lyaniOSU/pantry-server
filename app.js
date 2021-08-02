@@ -189,7 +189,13 @@ app.get('/query', function (req, res) {
       console.log(recipes);
 
       if (recipes.length === 0) {
-        res.send("No results found. Please try another query.");
+        var condensed = {};
+        var bodyjson = JSON.parse(body);
+        condensed["title"] = "";
+        condensed["image"] = "";
+        condensed["sourceUrl"] = "";
+        //res.send("No results found. Please try another query.");
+        res.send(condensed);
       } else {
         var ids = recipes[0].id;
         /*for (i = 0; i < recipes.length; i++) {
