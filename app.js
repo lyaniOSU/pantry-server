@@ -79,27 +79,20 @@ app.get('/randomize', function (req, res) {
 
   const request = http.request(searchRecipe, function (results) {
     const chunks = [];
-    //console.log(res);
 
     results.on("data", function (chunk) {
       chunks.push(chunk);
-      //console.log(chunk);
     });
 
     results.on("end", function () {
       const body = Buffer.concat(chunks);
-      //console.log(body.toString());
       content = JSON.parse(body);
       var recipes = content.recipes;
-      //console.log(recipes);
       var ids = [];
       for (i = 0; i < recipes.length; i++) {
         ids.push(recipes[i].id);
-        //console.log(recipes[i].id);
       }
-      //console.log(ids);
       getDetails(ids, res);
-      //res.send(body);
     });
   });
 
@@ -107,11 +100,10 @@ app.get('/randomize', function (req, res) {
 });
 
 app.get('/search', function (req, res) {
-  //console.log(req);
-  var item = req.query.item; //"burger";
-  var cuisine = req.query.cuisine; //"american";
-  var diet = req.query.diet; //"vegetarian";
-  var number = req.query.number; //10;
+  var item = req.query.item;
+  var cuisine = req.query.cuisine;
+  var diet = req.query.diet;
+  var number = req.query.number;
   var limitLicense = false;
   var type = "main%20course";
   var path = "/recipes/search?query=" + item + "&cuisine=" + cuisine + "&diet=" + diet + "&number=" + number;
@@ -135,12 +127,10 @@ app.get('/search', function (req, res) {
 
     results.on("data", function (chunk) {
       chunks.push(chunk);
-      //console.log(chunk);
     });
 
     results.on("end", function () {
       const body = Buffer.concat(chunks);
-      //console.log(body.toString());
       content = JSON.parse(body);
       var recipes = content.results;
       var ids = [];
@@ -149,7 +139,6 @@ app.get('/search', function (req, res) {
         console.log(recipes[i].id);
       }
       getDetails(ids, res);
-      //res.send(body);
     });
   });
 
@@ -194,14 +183,9 @@ app.get('/query', function (req, res) {
         condensed["title"] = "";
         condensed["image"] = "";
         condensed["sourceUrl"] = "";
-        //res.send("No results found. Please try another query.");
         res.send(condensed);
       } else {
         var ids = recipes[0].id;
-        /*for (i = 0; i < recipes.length; i++) {
-          ids.push(recipes[i].id);
-          console.log(recipes[i].id);
-        }*/
         getSummary(ids, res);
       }
 
@@ -262,7 +246,6 @@ function getDetails(array, res) {
     }
   }
   var path = "/recipes/informationBulk?ids=" + ids;
-  //console.log(path);
 
   const searchDetails = {
     "method": "GET",
@@ -278,11 +261,9 @@ function getDetails(array, res) {
 
   const request = http.request(searchDetails, function (results) {
     const chunks = [];
-    //console.log(res);
 
     results.on("data", function (chunk) {
       chunks.push(chunk);
-      //console.log(chunk);
     });
 
     results.on("end", function () {
