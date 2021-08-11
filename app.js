@@ -13,7 +13,7 @@ const pool = new Client({
   ssl: {
     rejectUnauthorized: false
   }
-});
+}); //Database connection for Postgresql
 
 pool.connect();
 
@@ -49,7 +49,7 @@ if (port == null || port == "") {
 app.listen(port);
 
 app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Origin", "*"); //Allow * on CORS given microservice integration
   res.header("Access-Control-Allow-Credentials", true);
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Content-Type, application/json");
@@ -60,22 +60,24 @@ app.use(cors());
 
 //HTTP Requests
 
+var searchRecipe = {
+  "method": "GET",
+  "hostname": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
+  "port": null,
+  "path": "",
+  "headers": {
+    "x-rapidapi-key": "7eac1f1eb2msh18be51d7ad8ff22p19c11ejsnd85ba0747743",
+    "x-rapidapi-host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
+    "useQueryString": true
+  }
+};
+
 app.get('/randomize', function (req, res) {
   var number = req.query.number;
   var path = "/recipes/random?number=" + number;
   var sample = "/recipes/random?number=1&tags=vegetarian%2Cdessert";
 
-  const searchRecipe = {
-    "method": "GET",
-    "hostname": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
-    "port": null,
-    "path": path,
-    "headers": {
-      "x-rapidapi-key": "7eac1f1eb2msh18be51d7ad8ff22p19c11ejsnd85ba0747743",
-      "x-rapidapi-host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
-      "useQueryString": true
-    }
-  };
+  searchRecipe['path'] = path;
 
   const request = http.request(searchRecipe, function (results) {
     const chunks = [];
@@ -95,7 +97,6 @@ app.get('/randomize', function (req, res) {
       getDetails(ids, res);
     });
   });
-
   request.end()
 });
 
@@ -109,17 +110,7 @@ app.get('/search', function (req, res) {
   var path = "/recipes/search?query=" + item + "&cuisine=" + cuisine + "&diet=" + diet + "&number=" + number;
   var sample = "/recipes/search?query=burger&diet=vegetarian&excludeIngredients=coconut&intolerances=egg%2C%20gluten&number=10&offset=0&type=main%20course";
 
-  const searchRecipe = {
-    "method": "GET",
-    "hostname": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
-    "port": null,
-    "path": path,
-    "headers": {
-      "x-rapidapi-key": "7eac1f1eb2msh18be51d7ad8ff22p19c11ejsnd85ba0747743",
-      "x-rapidapi-host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
-      "useQueryString": true
-    }
-  };
+  searchRecipe['path'] = path;
 
   const request = http.request(searchRecipe, function (results) {
     const chunks = [];
@@ -141,9 +132,7 @@ app.get('/search', function (req, res) {
       getDetails(ids, res);
     });
   });
-
   request.end()
-
 });
 
 app.get('/query', function (req, res) {
@@ -151,7 +140,7 @@ app.get('/query', function (req, res) {
   console.log(item);
   var path = "/recipes/search?query=" + item + "&number=1";
 
-  const options = {
+  const searchRecipe = {
     "method": "GET",
     "hostname": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
     "port": null,
@@ -163,7 +152,7 @@ app.get('/query', function (req, res) {
     }
   };
 
-  const request = http.request(options, function (results) {
+  const request = http.request(searchRecipe, function (results) {
     const chunks = [];
 
     results.on("data", function (chunk) {
@@ -188,8 +177,6 @@ app.get('/query', function (req, res) {
         var ids = recipes[0].id;
         getSummary(ids, res);
       }
-
-
     });
   });
 
@@ -201,7 +188,7 @@ function getSummary(array, res) {
   console.log(id);
   var path = "/recipes/" + id + "/information";
 
-  const options = {
+  const searchRecipe = {
     "method": "GET",
     "hostname": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
     "port": null,
@@ -213,7 +200,7 @@ function getSummary(array, res) {
     }
   };
 
-  const request = http.request(options, function (results) {
+  const request = http.request(searchRecipe, function (results) {
     const chunks = [];
 
     results.on("data", function (chunk) {
