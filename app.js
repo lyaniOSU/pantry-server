@@ -140,17 +140,7 @@ app.get('/query', function (req, res) {
   console.log(item);
   var path = "/recipes/search?query=" + item + "&number=1";
 
-  const searchRecipe = {
-    "method": "GET",
-    "hostname": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
-    "port": null,
-    "path": path,
-    "headers": {
-      "x-rapidapi-key": "7eac1f1eb2msh18be51d7ad8ff22p19c11ejsnd85ba0747743",
-      "x-rapidapi-host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
-      "useQueryString": true
-    }
-  };
+  searchRecipe['path'] = path;
 
   const request = http.request(searchRecipe, function (results) {
     const chunks = [];
@@ -179,7 +169,6 @@ app.get('/query', function (req, res) {
       }
     });
   });
-
   request.end();
 });
 
@@ -188,17 +177,7 @@ function getSummary(array, res) {
   console.log(id);
   var path = "/recipes/" + id + "/information";
 
-  const searchRecipe = {
-    "method": "GET",
-    "hostname": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
-    "port": null,
-    "path": path,
-    "headers": {
-      "x-rapidapi-key": "7eac1f1eb2msh18be51d7ad8ff22p19c11ejsnd85ba0747743",
-      "x-rapidapi-host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
-      "useQueryString": true
-    }
-  };
+  searchRecipe['path'] = path;
 
   const request = http.request(searchRecipe, function (results) {
     const chunks = [];
@@ -218,7 +197,6 @@ function getSummary(array, res) {
       res.send(condensed);
     });
   });
-
   request.end();
 }
 
@@ -234,17 +212,7 @@ function getDetails(array, res) {
   }
   var path = "/recipes/informationBulk?ids=" + ids;
 
-  const searchDetails = {
-    "method": "GET",
-    "hostname": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
-    "port": null,
-    "path": path,
-    "headers": {
-      "x-rapidapi-key": "7eac1f1eb2msh18be51d7ad8ff22p19c11ejsnd85ba0747743",
-      "x-rapidapi-host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
-      "useQueryString": true
-    }
-  };
+  searchRecipe['path'] = path;
 
   const request = http.request(searchDetails, function (results) {
     const chunks = [];
@@ -261,8 +229,6 @@ function getDetails(array, res) {
   });
   request.end()
 };
-
-
 
 //Error Handling
 
